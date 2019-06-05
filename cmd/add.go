@@ -15,36 +15,71 @@
 package cmd
 
 import (
-	"fmt"
+	"os"
+	"path/filepath"
 
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
+
+var (
+	chartName string
+)
+
+var (
+	addUsage = `Add command creates a predefined directory structure
+for the new package and optionally fetches helm chart.
+
+To initialize new package run:
+
+	$ kube-atlas add prometheus
+
+or to also fetch the chart
+	$ kube-atlas add prometheus --chart=stable/prometheus-operator
+`
+)
+
+func initializePkgDirs(pkgName string) error {
+	// TODO: finetune permissions on new directories
+	sourcePath := viper.GetString("source_path")
+	path := filepath.Join(sourcePath, pkgName)
+	log.Info().Str("path", path).Msg("creating pkg directory")
+	err := os.MkdirAll(path, 0774)
+	if err != nil {
+		return err
+	}
+	for _, sub := range []string{"manifests", "patches", "values", "chart"} {
+		subPath := filepath.Join(path, sub)
+		log.Info().Str("path", subPath).Msg("creating pkg directory")
+		err := os.MkdirAll(subPath, 0774)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 // addCmd represents the add command
 var addCmd = &cobra.Command{
-	Use:   "add",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Use:     "add <name>",
+	Example: "\tkube-atlas add prometheus\n\tkube-atlas add prometheus --chart=stable/prometheus-operator",
+	Short:   "Creates directory structure for the new package",
+	Long:    addUsage,
+	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("add called")
+		err := initializePkgDirs(args[0])
+		if err != nil {
+			log.Fatal().Err(err)
+		}
+		if chartName != "" {
+			log.Info().Msgf("going to fetch chart from %s", chartName)
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(addCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// addCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// addCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	addCmd.Flags().StringVar(&chartName, "chart", "", "Name of the helm chart to fetch into package, e.g. stable/prometheus")
 }
