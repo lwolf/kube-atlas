@@ -353,7 +353,7 @@ go_repository(
 go_repository(
     name = "com_github_pkg_errors",
     importpath = "github.com/pkg/errors",
-    tag = "v0.8.0",
+    tag = "v0.8.1",
 )
 
 go_repository(
@@ -574,7 +574,7 @@ go_repository(
 
 go_repository(
     name = "org_golang_x_sync",
-    commit = "37e7f081c4d4",
+    commit = "112230192c58",
     importpath = "golang.org/x/sync",
 )
 
@@ -598,7 +598,7 @@ go_repository(
 
 go_repository(
     name = "org_golang_x_tools",
-    commit = "11955173bddd",
+    commit = "31fd60d6bfdc",
     importpath = "golang.org/x/tools",
 )
 
@@ -618,4 +618,22 @@ go_repository(
     name = "org_uber_go_zap",
     importpath = "go.uber.org/zap",
     tag = "v1.10.0",
+)
+
+go_repository(
+    name = "com_github_rs_xid",
+    importpath = "github.com/rs/xid",
+    tag = "v1.2.1",
+)
+
+go_repository(
+    name = "com_github_rs_zerolog",
+    importpath = "github.com/rs/zerolog",
+    tag = "v1.14.3",
+)
+
+go_repository(
+    name = "com_github_zenazn_goji",
+    importpath = "github.com/zenazn/goji",
+    tag = "v0.9.0",
 )

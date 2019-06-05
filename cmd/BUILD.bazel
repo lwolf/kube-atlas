@@ -18,6 +18,8 @@ go_library(
         "GitCommit": "{STABLE_GIT_COMMIT}",
     },
     deps = [
+        "@com_github_rs_zerolog//:go_default_library",
+        "@com_github_rs_zerolog//log:go_default_library",
         "@com_github_spf13_cobra//:go_default_library",
         "@com_github_spf13_viper//:go_default_library",
     ],
