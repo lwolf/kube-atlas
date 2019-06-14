@@ -1,1 +1,11 @@
-/Users/lwolf/workspace/github.com/lwolf/kube-atlas/.bazelrc
+# inspiration: https://github.com/kubernetes/kubernetes/blob/master/build/root/.bazelrc
+# Include git version info
+build --workspace_status_command hack/status.sh
+
+# Ensure that Bazel never runs as root, which can cause unit tests to fail.
+# This flag requires Bazel 0.5.0+
+build --sandbox_fake_username
+
+# Enable go race detection.
+build:unit --features=race
+test:unit --features=race
