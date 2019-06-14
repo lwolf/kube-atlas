@@ -1,0 +1,62 @@
+repositories:
+  - name: lwolf-charts
+    url: http://charts.lwolf.org
+  - name: appscode
+    url: https://charts.appscode.com/stable/
+  - name: istio.io
+    url: https://storage.googleapis.com/istio-release/releases/1.1.7/charts
+  - name: appscode
+    url: https://charts.appscode.com/stable/
+
+defaults:
+  sourcePath: ./testing/apps
+  releasePath: ./testing/releases
+  # release path template
+  # <RELEASE_PATH>/<CLUSTER_NAME>/<NAMESPACE>/PKG_NAME
+  clusterName: amz1
+
+releases:
+  - name: prometheus
+    namespace: monitoring
+    chart: stable/prometheus
+    version: v8.11.4
+    values:
+      - custom-values.yaml
+    manifests:
+      # raw manifests that will be copied to the destination
+      # path should be relative to the pkg/manifests directory
+      # could be directory of files
+      - argo.yaml
+#  - name: istio
+#    namespace: istio-system
+#    chart: istio.io/istio
+#    version: 1.2.0-rc.0
+#    devel: true
+#    manifests:
+#      - ./manifests/gateways
+#      - ./manifests/virtual-services
+#    # patches are json/yaml patches that should be applied on rendered templates
+#    patches:
+#      -
+#    values:
+#      - values-custom.yaml
+
+# kube-atlas --help
+# --debug                           enable verbose output
+# --log-level value                       Set log level, default info
+# --selector value, -l value              Only run using the releases that match labels. Labels can take the form of foo=bar or foo!=bar.
+#                                         A release must match all labels in a group in order to be used. Multiple groups can be specified at once.
+#                                         --selector tier=frontend,tier!=proxy --selector tier=backend. Will match all frontend, non-proxy releases AND all backend releases.
+#                                         The name of a release can be used as a label. --selector name=myrelease
+# --help, -h                              show help
+# --version, -v                           print the version
+# kube-atlas init
+#  --file kube-atlas.yaml, -f kube-atlas.yaml  load config from file or directory. defaults to kube-atlas.yaml
+#  --dir ~/mykube location of the directory containing all the charts and manifests.
+# ADD command could be extended to include multiple names
+# kube-atlas add <name>
+# kube-atlas fetch <name>
+# --chart=stable/prometheus-operator
+# kube-atlas render
+#  --output-dir
+#  --dry-run
