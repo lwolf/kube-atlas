@@ -1,1 +1,1 @@
-/Users/lwolf/workspace/github.com/lwolf/kube-atlas/version.bzl
+VERSION = "0.0.1"

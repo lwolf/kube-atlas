@@ -1,1 +1,44 @@
-/Users/lwolf/workspace/github.com/lwolf/kube-atlas/BUILD.bazel
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@io_bazel_rules_docker//go:image.bzl", "go_image")
+load("@io_bazel_rules_docker//container:container.bzl", "container_push", "container_image")
+load("@bazel_gazelle//:def.bzl", "gazelle")
+
+# gazelle:prefix github.com/lwolf/kube-atlas
+gazelle(name = "gazelle")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "github.com/lwolf/kube-atlas",
+    visibility = ["//visibility:private"],
+    deps = ["//cmd:go_default_library"],
+)
+
+go_binary(
+    name = "kube-atlas",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+go_image(
+    name = "go_image_base",
+    embed = [":go_default_library"],
+)
+
+container_image(
+    name = "go_image",
+    base = ":go_image_base",
+    ports = [
+        "8000",
+        "8001",
+    ],
+)
+
+container_push(
+    name = "push",
+    format = "Docker",
+    image = ":go_image",
+    registry = "index.docker.io",
+    repository = "lwolf/kube-atlas",
+    tag = "{STABLE_GIT_COMMIT}",
+)
