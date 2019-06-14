@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "exec.go",
+        "exit_error.go",
+        "helmexec.go",
+        "runner.go",
+    ],
+    importpath = "github.com/lwolf/kube-atlas/pkg/helmexec",
+    visibility = ["//visibility:public"],
+    deps = ["@com_github_rs_zerolog//:go_default_library"],
+)
