@@ -2,7 +2,7 @@
 [ ] directory for clusterName doesn't get created
 [ ] we should fail if we can't create any of the directories
 [x] render specific chart does not work
-[ ] namespace is not set during render
+[x] namespace is not set during render
 [ ] check every file for existence before copying 
 [ ] add option to concatenate all the rendered manifests
 [ ] iterate over manifests, if it's directory

@@ -74,6 +74,9 @@ to quickly create a Cobra application.`,
 			}
 			defer os.RemoveAll(destTmp)
 			args := []string{"--output-dir", destTmp, "--name", r.Name}
+			if r.Namespace != "" {
+				args = append(args, "--namespace", r.Namespace)
+			}
 			configPath, err := r.GetValuesPath(&state.Defaults)
 			if err != nil {
 				log.Error().Err(err).Msg("failed to get values directory")
