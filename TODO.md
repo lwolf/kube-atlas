@@ -1,5 +1,5 @@
 ## bugs:
-[ ] directory for clusterName doesn't get created
+[x] directory for clusterName doesn't get created
 [ ] we should fail if we can't create any of the directories
 [x] render specific chart does not work
 [x] namespace is not set during render
