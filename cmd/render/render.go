@@ -101,6 +101,10 @@ to quickly create a Cobra application.`,
 			if err != nil {
 				log.Error().Err(err).Msg("failed to get destination directory")
 			}
+			err = os.MkdirAll(dstPath, 0755)
+			if err != nil {
+				log.Fatal().Err(err)
+			}
 			log.Info().Str("path", dstPath).Msg("destination path for the rendered chart")
 			err = os.RemoveAll(dstPath)
 			if err != nil {
