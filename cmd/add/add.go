@@ -15,10 +15,11 @@
 package add
 
 import (
-	"github.com/lwolf/kube-atlas/pkg/config"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/lwolf/kube-atlas/pkg/state"
 )
 
 var (
@@ -42,20 +43,20 @@ var CmdAdd = &cobra.Command{
 	Long:    addUsage,
 	Args:    cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		var state config.ClusterSpec
-		err := viper.Unmarshal(&state)
+		var s state.ClusterSpec
+		err := viper.Unmarshal(&s)
 		if err != nil {
 			log.Fatal().Err(err).Msg("unable to unmarshal config")
 		}
 		for _, pkg := range args {
-			r := state.ReleaseByName(pkg)
+			r := s.ReleaseByName(pkg)
 			if r == nil {
 				// package does not exists in the kube-atlas.yaml
-				r = &config.ReleaseSpec{Name: pkg}
+				r = &state.ReleaseSpec{Name: pkg}
 				log.Info().Str("pkg", pkg).Msg("New package is being added, add record to your kube-atlas.yaml")
 			}
 			log.Info().Str("pkg", pkg).Msg("Creating/Fixing directory structure for the package")
-			err = r.InitDirs(&state.Defaults)
+			err = r.InitDirs(&s.Defaults)
 			if err != nil {
 				log.Error().Err(err).Msg("failed to create directories")
 			}

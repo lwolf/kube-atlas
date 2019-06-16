@@ -26,7 +26,6 @@ import (
 	"github.com/lwolf/kube-atlas/cmd/fetch"
 	"github.com/lwolf/kube-atlas/cmd/render"
 	"github.com/lwolf/kube-atlas/cmd/start"
-	"github.com/lwolf/kube-atlas/cmd/version"
 )
 
 var globalUsage = `kube-atlas is an opinionated way to manage Kubernetes manifests
@@ -40,7 +39,7 @@ This will create a kube-atlas.yaml file in your current directory..
 
 Common actions from this point include:
 
-- kube-atlas add:        add entry to your cluster state, will create required directories and entry to kube-atlas.yaml
+- kube-atlas add:        add entry to your cluster state, will create required directories
 - kube-atlas fetch:      download new version of chart to your local directory 
 - kube-atlas render:     render entire cluster state to the release directory `
 
@@ -48,6 +47,7 @@ var (
 	cfgFile     string
 	sourcePath  string
 	releasePath string
+	Version     string
 )
 
 // RootCmd represents the base command when called without any subcommands
@@ -77,15 +77,15 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
-	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is kube-atlas.yaml)")
-	RootCmd.PersistentFlags().StringVar(&sourcePath, "source-path", "", "source directory with charts and manifests")
-	RootCmd.PersistentFlags().StringVar(&releasePath, "release-path", "", "release directory for rendered output")
+	RootCmd.PersistentFlags().StringVarP(&cfgFile, "file", "f", "kube-atlas.yaml", "path to the config file")
+	RootCmd.PersistentFlags().StringVar(&sourcePath, "source-path", "apps", "source directory with charts and manifests")
+	RootCmd.PersistentFlags().StringVar(&releasePath, "release-path", "releases", "release directory for rendered output")
 	_ = viper.BindPFlag("defaults.sourcePath", RootCmd.PersistentFlags().Lookup("source-path"))
 	_ = viper.BindPFlag("defaults.releasePath", RootCmd.PersistentFlags().Lookup("release-path"))
 
+	RootCmd.Version = Version
 	RootCmd.AddCommand(fetch.CmdFetch)
 	RootCmd.AddCommand(add.CmdAdd)
-	RootCmd.AddCommand(version.CmdVersion)
 	RootCmd.AddCommand(render.CmdRender)
 	RootCmd.AddCommand(start.CmdInit)
 }

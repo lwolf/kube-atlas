@@ -24,9 +24,14 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/lwolf/kube-atlas/pkg/config"
 	"github.com/lwolf/kube-atlas/pkg/fileutil"
 	"github.com/lwolf/kube-atlas/pkg/helmexec"
+	"github.com/lwolf/kube-atlas/pkg/state"
+)
+
+var (
+	renderAll bool
+	dryRun    bool
 )
 
 // renderCmd represents the render command
@@ -40,27 +45,31 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var state config.ClusterSpec
-		err := viper.Unmarshal(&state)
+		var s state.ClusterSpec
+		err := viper.Unmarshal(&s)
 		if err != nil {
 			log.Fatal().Err(err).Msg("unable to unmarshal config")
 		}
-		var releases []config.ReleaseSpec
-		if len(args) > 0 {
-			for _, r := range args {
-				rl := state.ReleaseByName(r)
-				if rl != nil {
-					releases = append(releases, *rl)
+		var releases []state.ReleaseSpec
+		if renderAll {
+			releases = s.Releases
+		} else if len(args) > 0 {
+			if len(args) > 0 {
+				for _, r := range args {
+					rl := s.ReleaseByName(r)
+					if rl != nil {
+						releases = append(releases, *rl)
+					}
+				}
+				if len(releases) == 0 {
+					log.Fatal().Strs("names", args).Msg("no releases with these names found in the config")
 				}
 			}
-			if len(releases) == 0 {
-				log.Fatal().Strs("names", args).Msg("no releases with these names found in the config")
-			}
 		} else {
-			releases = state.Releases
+			log.Fatal().Msg("eiher --all or release name is required")
 		}
 
-		clusterPath := state.Defaults.GetReleasePath()
+		clusterPath := s.Defaults.GetReleasePath()
 		err = os.MkdirAll(clusterPath, 0755)
 		if err != nil {
 			log.Fatal().Err(err)
@@ -77,7 +86,7 @@ to quickly create a Cobra application.`,
 			if r.Namespace != "" {
 				args = append(args, "--namespace", r.Namespace)
 			}
-			configPath, err := r.GetValuesPath(&state.Defaults)
+			configPath, err := r.GetValuesPath(&s.Defaults)
 			if err != nil {
 				log.Error().Err(err).Msg("failed to get values directory")
 			}
@@ -90,14 +99,14 @@ to quickly create a Cobra application.`,
 					log.Error().Str("file", configFile).Msg("values file does not exists, skipping")
 				}
 			}
-			chartPath, err := r.GetChartPath(&state.Defaults)
+			chartPath, err := r.GetChartPath(&s.Defaults)
 			if err != nil {
 				log.Error().Err(err).Msg("failed to get chart directory")
 			}
 			if err := helm.TemplateRelease(chartPath, args...); err != nil {
 				log.Fatal().Err(err)
 			}
-			dstPath, err := r.GetReleasePath(&state.Defaults)
+			dstPath, err := r.GetReleasePath(&s.Defaults)
 			if err != nil {
 				log.Error().Err(err).Msg("failed to get destination directory")
 			}
@@ -118,7 +127,7 @@ to quickly create a Cobra application.`,
 			if err != nil {
 				log.Fatal().Err(err)
 			}
-			manifestsPath, err := r.GetManifestsPath(&state.Defaults)
+			manifestsPath, err := r.GetManifestsPath(&s.Defaults)
 			if err != nil {
 				log.Fatal().Err(err)
 			}
@@ -135,4 +144,7 @@ to quickly create a Cobra application.`,
 	},
 }
 
-func init() {}
+func init() {
+	CmdRender.Flags().BoolVar(&renderAll, "all", false, "Render all the releases listed in the config")
+	CmdRender.Flags().BoolVar(&dryRun, "dry-run", false, "Render to stdout")
+}

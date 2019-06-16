@@ -15,7 +15,6 @@ go_library(
         "//cmd/fetch:go_default_library",
         "//cmd/render:go_default_library",
         "//cmd/start:go_default_library",
-        "//cmd/version:go_default_library",
         "@com_github_rs_zerolog//:go_default_library",
         "@com_github_rs_zerolog//log:go_default_library",
         "@com_github_spf13_cobra//:go_default_library",
