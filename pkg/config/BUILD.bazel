@@ -1,9 +1,14 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
     srcs = ["config.go"],
     importpath = "github.com/lwolf/kube-atlas/pkg/config",
     visibility = ["//visibility:public"],
-    deps = ["@com_github_cyphar_filepath_securejoin//:go_default_library"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["config_test.go"],
+    embed = [":go_default_library"],
 )
