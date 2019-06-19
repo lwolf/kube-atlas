@@ -8,14 +8,14 @@
 [ ] add --dry-run mode
 [ ] iterate over manifests, if it's directory
     [ ] wildcard copy everything under manifests
-[ ] subcharts a not being copied to the release folder
+[ ] subcharts are not being copied to the release folder
 ## features
 [ ] init kube-atlas.yaml from helmfile
 [ ] distinguish local/remote charts, don't try to fetch local
     [x] add `dirty` flag as a workaround to block chart overwriting 
 [x] fetch --all to download all charts
 [ ] fetch only if versions are differ or `--force` is set
-
+[ ] write proper readme
 
 -------
 ## future
@@ -23,6 +23,7 @@
 [ ] ability to set release name
 [ ] ability to template rendering path
 [ ] interactive init
+[ ] support kustomize
 [ ] research and add support for json patch/merge
     * https://github.com/pivotal-cf/yaml-patch
     * https://github.com/cppforlife/go-patch
