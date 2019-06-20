@@ -67,7 +67,13 @@ var CmdFetch = &cobra.Command{
 		}
 		var releases []state.ReleaseSpec
 		if fetchAll {
-			releases = s.Releases
+			for _, r := range s.Releases {
+				if r.Dirty {
+					log.Warn().Str("release", r.Name).Msg("release is marked as dirty, skipping")
+					continue
+				}
+				releases = append(releases, r)
+			}
 		} else if len(args) > 0 {
 			rl := s.ReleaseByName(args[0])
 			if rl == nil {
@@ -118,7 +124,7 @@ var CmdFetch = &cobra.Command{
 			log.Debug().Msgf("going to fetch chart from %s", release.Chart)
 			destTmp, err := ioutil.TempDir("", "helm-")
 			if err != nil {
-				log.Error().Err(err)
+				log.Error().Err(err).Msg("failed create temp directory")
 			}
 			defer os.RemoveAll(destTmp)
 
@@ -137,13 +143,12 @@ var CmdFetch = &cobra.Command{
 			}
 			chartTmp := filepath.Join(destTmp, files[0].Name())
 
-			log.Info().Str("pkgChart", chartPath).Msgf("removing chart sources")
 			if err := os.RemoveAll(chartPath); err != nil {
-				log.Error().Err(err)
+				log.Error().Err(err).Msg("failed to remove files before update")
 			}
 			log.Debug().Str("src", chartTmp).Str("dest", chartPath).Msg("moving chart to destination")
 			if err := os.Rename(chartTmp, chartPath); err != nil {
-				log.Error().Err(err)
+				log.Error().Err(err).Msg("failed to move chart")
 			}
 		}
 	},
