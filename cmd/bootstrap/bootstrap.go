@@ -12,19 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package start
+package bootstrap
 
 import (
-	"fmt"
-
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
+
+	"github.com/lwolf/kube-atlas/pkg/bootstrap"
 )
 
 var (
-	dir string
+	dir         string
+	interactive bool
 )
 
-var initUsage = `Init command creates 
+var initUsage = `Init command
 `
 
 // initCmd represents the init command
@@ -33,8 +35,13 @@ var CmdInit = &cobra.Command{
 	Short: "Create a new kube-atlas.yaml file in the current directory",
 	Long:  initUsage,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("init called")
-		fmt.Println(args, dir)
+		log.Warn().Msg("init command is not yet implemented")
+		if interactive {
+			bootstrap.Interactive()
+		}
+		// else {
+		// bootstrap.Execute()
+		// }
 	},
 }
 
@@ -43,5 +50,5 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	CmdInit.Flags().StringVar(&dir, "dir", "", "Location of the directory containing all the charts and manifests")
+	CmdInit.Flags().BoolVar(&interactive, "interactive", false, "Start in interactive mode")
 }

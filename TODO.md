@@ -2,13 +2,14 @@
 [x] directory for clusterName doesn't get created
 [x] render specific chart does not work
 [x] namespace is not set during render
-[ ] should fail if can't create any of the directories
-[ ] check every file for existence before copying 
+[x] should fail if can't create any of the directories
+    [x] validate/create target directory before rendering/processing
+    [x] check every file for existence before copying 
 [ ] add option to concatenate all the rendered manifests
 [ ] add --dry-run mode
 [ ] iterate over manifests, if it's directory
     [ ] wildcard copy everything under manifests
-[ ] subcharts are not being copied to the release folder
+[x] subcharts are not being copied to the release folder
 ## features
 [ ] init kube-atlas.yaml from helmfile
 [ ] distinguish local/remote charts, don't try to fetch local
@@ -16,6 +17,7 @@
 [x] fetch --all to download all charts
 [ ] fetch only if versions are differ or `--force` is set
 [ ] write proper readme
+[ ] consider adding ignore list for chart, e.g. do not copy `tests` to release
 
 -------
 ## future

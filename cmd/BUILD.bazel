@@ -12,9 +12,9 @@ go_library(
     },
     deps = [
         "//cmd/add:go_default_library",
+        "//cmd/bootstrap:go_default_library",
         "//cmd/fetch:go_default_library",
         "//cmd/render:go_default_library",
-        "//cmd/start:go_default_library",
         "@com_github_rs_zerolog//:go_default_library",
         "@com_github_rs_zerolog//log:go_default_library",
         "@com_github_spf13_cobra//:go_default_library",
