@@ -23,9 +23,9 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/lwolf/kube-atlas/cmd/add"
+	"github.com/lwolf/kube-atlas/cmd/bootstrap"
 	"github.com/lwolf/kube-atlas/cmd/fetch"
 	"github.com/lwolf/kube-atlas/cmd/render"
-	"github.com/lwolf/kube-atlas/cmd/start"
 )
 
 var globalUsage = `kube-atlas is an opinionated way to manage Kubernetes manifests
@@ -64,7 +64,7 @@ var RootCmd = &cobra.Command{
 // This is called by main.main(). It only needs to happen once to the RootCmd.
 func Execute() {
 	if err := RootCmd.Execute(); err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("failed to run")
 		os.Exit(1)
 	}
 }
@@ -87,7 +87,7 @@ func init() {
 	RootCmd.AddCommand(fetch.CmdFetch)
 	RootCmd.AddCommand(add.CmdAdd)
 	RootCmd.AddCommand(render.CmdRender)
-	RootCmd.AddCommand(start.CmdInit)
+	RootCmd.AddCommand(bootstrap.CmdInit)
 }
 
 // initConfig reads in config file and ENV variables if set.

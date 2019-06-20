@@ -643,3 +643,87 @@ go_repository(
     importpath = "github.com/cyphar/filepath-securejoin",
     tag = "v0.2.2",
 )
+
+go_repository(
+    name = "com_github_alecthomas_gometalinter",
+    importpath = "github.com/alecthomas/gometalinter",
+    tag = "v2.0.11",
+)
+
+go_repository(
+    name = "com_github_chzyer_logex",
+    importpath = "github.com/chzyer/logex",
+    tag = "v1.1.10",
+)
+
+go_repository(
+    name = "com_github_chzyer_readline",
+    commit = "2972be24d48e",
+    importpath = "github.com/chzyer/readline",
+)
+
+go_repository(
+    name = "com_github_chzyer_test",
+    commit = "a1ea475d72b1",
+    importpath = "github.com/chzyer/test",
+)
+
+go_repository(
+    name = "com_github_golang_lint",
+    commit = "c67002cb31c3",
+    importpath = "github.com/golang/lint",
+)
+
+go_repository(
+    name = "com_github_google_shlex",
+    commit = "c34317bd91bf",
+    importpath = "github.com/google/shlex",
+)
+
+go_repository(
+    name = "com_github_gordonklaus_ineffassign",
+    commit = "1003c8bd00dc",
+    importpath = "github.com/gordonklaus/ineffassign",
+)
+
+go_repository(
+    name = "com_github_juju_ansiterm",
+    commit = "720a0952cc2a",
+    importpath = "github.com/juju/ansiterm",
+)
+
+go_repository(
+    name = "com_github_lunixbochs_vtclean",
+    commit = "2d01aacdc34a",
+    importpath = "github.com/lunixbochs/vtclean",
+)
+
+go_repository(
+    name = "com_github_manifoldco_promptui",
+    importpath = "github.com/manifoldco/promptui",
+    tag = "v0.3.2",
+)
+
+go_repository(
+    name = "com_github_mattn_go_colorable",
+    importpath = "github.com/mattn/go-colorable",
+    tag = "v0.0.9",
+)
+
+go_repository(
+    name = "com_github_mattn_go_isatty",
+    importpath = "github.com/mattn/go-isatty",
+    tag = "v0.0.4",
+)
+
+go_repository(
+    name = "com_github_tsenart_deadcode",
+    commit = "210d2dc333e9",
+    importpath = "github.com/tsenart/deadcode",
+)
+
+go_repository(
+    name = "in_gopkg_alecthomas_kingpin_v3_unstable",
+    commit = "df19058c872c",
+    importpath = "gopkg.in/alecthomas/kingpin.v3-unstable",
+)
