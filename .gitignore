@@ -10,9 +10,10 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-/bazel-bin/
-/bazel-genfiles/
-/bazel-kube-atlas/
-/bazel-out/
-/bazel-testlogs/
-/testing/
+/bazel-bin
+/bazel-genfiles
+/bazel-kube-atlas
+/bazel-out
+/bazel-testlogs
+/testing
+.idea
