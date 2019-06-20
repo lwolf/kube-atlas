@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["bootstrap.go"],
+    importpath = "github.com/lwolf/kube-atlas/cmd/bootstrap",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/bootstrap:go_default_library",
+        "@com_github_rs_zerolog//log:go_default_library",
+        "@com_github_spf13_cobra//:go_default_library",
+    ],
+)

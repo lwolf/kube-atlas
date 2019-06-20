@@ -3,9 +3,23 @@ package fileutil
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
+	"path"
 )
 
+func IsDir(name string) (isDir bool, err error) {
+	var fi os.FileInfo
+	if fi, err = os.Stat(name); err != nil {
+		return false, err
+	}
+	if fi.Mode().IsDir() {
+		return true, nil
+	}
+	return false, nil
+}
+
+// Exists checks whether target file or directory exists
 func Exists(name string) bool {
 	if _, err := os.Stat(name); err != nil {
 		if os.IsNotExist(err) {
@@ -15,8 +29,45 @@ func Exists(name string) bool {
 	return true
 }
 
+// CopyDir copies entire directory recursively
+func CopyDir(src string, dst string) error {
+	var err error
+	var fds []os.FileInfo
+	var srcinfo os.FileInfo
+
+	if srcinfo, err = os.Stat(src); err != nil {
+		return err
+	}
+
+	if err = os.MkdirAll(dst, srcinfo.Mode()); err != nil {
+		return err
+	}
+
+	if fds, err = ioutil.ReadDir(src); err != nil {
+		return err
+	}
+	for _, fd := range fds {
+		srcfp := path.Join(src, fd.Name())
+		dstfp := path.Join(dst, fd.Name())
+
+		if fd.IsDir() {
+			if err = CopyDir(srcfp, dstfp); err != nil {
+				fmt.Println(err)
+			}
+		} else {
+			if err = CopyFile(srcfp, dstfp); err != nil {
+				fmt.Println(err)
+			}
+		}
+	}
+	return nil
+}
+
+// CopyFile tries to copy source file to the destination
 func CopyFile(src string, dst string) error {
 	var fi, dfi os.FileInfo
+	var srcfd *os.File
+	var dstfd *os.File
 	var err error
 	if fi, err = os.Stat(src); err != nil {
 		return err
@@ -36,24 +87,28 @@ func CopyFile(src string, dst string) error {
 			return fmt.Errorf("unable to copy: same file")
 		}
 	}
-	in, err := os.Open(src)
-	if err != nil {
+	if srcfd, err = os.Open(src); err != nil {
 		return err
 	}
-	defer in.Close()
-	out, err := os.Create(dst)
+	defer srcfd.Close()
+	dstfd, err = os.Create(dst)
 	if err != nil {
 		return err
 	}
 	defer func() {
-		cerr := out.Close()
+		cerr := dstfd.Close()
 		if err == nil {
 			err = cerr
 		}
 	}()
-	if _, err = io.Copy(out, in); err != nil {
+	if _, err = io.Copy(dstfd, srcfd); err != nil {
 		return err
 	}
-	err = out.Sync()
-	return nil
+	if err = dstfd.Sync(); err != nil {
+		return err
+	}
+	if fi, err = os.Stat(src); err != nil {
+		return err
+	}
+	return os.Chmod(dst, fi.Mode())
 }

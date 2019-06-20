@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	command = "helm3"
+	command = "helm"
 )
 
 type execer struct {

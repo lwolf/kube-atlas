@@ -90,6 +90,35 @@ func (cs *ClusterSpec) ReleaseByName(name string) *ReleaseSpec {
 	return nil
 }
 
+func (cs *ClusterSpec) CreateSourceDirectories() error {
+	for _, r := range cs.Releases {
+		err := r.InitDirs(&cs.Defaults)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (cs *ClusterSpec) CreateReleaseDirectories() error {
+	clusterPath := cs.Defaults.GetReleasePath()
+	err := os.MkdirAll(clusterPath, 0755)
+	if err != nil {
+		return err
+	}
+	for _, r := range cs.Releases {
+		dstPath, err := r.GetReleasePath(&cs.Defaults)
+		if err != nil {
+			return err
+		}
+		err = os.MkdirAll(dstPath, 0755)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // RepositorySpec defines values for a helm charts repo
 type RepositorySpec struct {
 	Name     string `yaml:"name"`
