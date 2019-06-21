@@ -118,6 +118,6 @@ func (helm *execer) info(out []byte) {
 
 func (helm *execer) write(out []byte) {
 	if len(out) > 0 {
-		fmt.Printf("%s\n", out)
+		helm.logger.Debug().Msgf("%s\n", out)
 	}
 }
