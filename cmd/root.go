@@ -46,6 +46,7 @@ Common actions from this point include:
 var (
 	cfgFile     string
 	sourcePath  string
+	logLevel    string
 	releasePath string
 	Version     string
 )
@@ -70,14 +71,12 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
-	// TODO: setup logging
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
 	RootCmd.PersistentFlags().StringVarP(&cfgFile, "file", "f", "kube-atlas.yaml", "path to the config file")
+	RootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "change logging level")
 	RootCmd.PersistentFlags().StringVar(&sourcePath, "source-path", "apps", "source directory with charts and manifests")
 	RootCmd.PersistentFlags().StringVar(&releasePath, "release-path", "releases", "release directory for rendered output")
 	_ = viper.BindPFlag("defaults.sourcePath", RootCmd.PersistentFlags().Lookup("source-path"))
@@ -103,4 +102,10 @@ func initConfig() {
 		log.Debug().Str("config", viper.ConfigFileUsed()).Msg("Config file loaded")
 		// viper.Debug()
 	}
+	lvl, err := zerolog.ParseLevel(logLevel)
+	if err != nil {
+		log.Warn().Msgf("invalid log-level=%s provided", logLevel)
+		lvl = zerolog.InfoLevel
+	}
+	zerolog.SetGlobalLevel(lvl)
 }
