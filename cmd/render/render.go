@@ -155,7 +155,7 @@ func renderHelmChart(release *state.ReleaseSpec, s *state.ClusterSpec) error {
 		dstfp := filepath.Join(dstPath, fd.Name())
 		rlog.Debug().Msgf("copy from %s to %s", srcfp, dstfp)
 		if fd.IsDir() {
-			err = fileutil.CopyDir(srcfp, dstfp)
+			err = fileutil.CopyDir(srcfp, dstfp, "")
 			if err != nil {
 				rlog.Error().Err(err).Msg("error copying dir")
 			}
@@ -198,7 +198,7 @@ func copyManifests(release *state.ReleaseSpec, s *state.ClusterSpec) error {
 			continue
 		}
 		if isDir {
-			err = fileutil.CopyDir(p, dstPath)
+			err = fileutil.CopyDir(p, dstPath, m)
 			if err != nil {
 				mlog.Error().Err(err).Msg("failed to copy directory")
 			}

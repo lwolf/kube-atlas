@@ -30,7 +30,7 @@ func Exists(name string) bool {
 }
 
 // CopyDir copies entire directory recursively
-func CopyDir(src string, dst string) error {
+func CopyDir(src string, dst string, dstPrefix string) error {
 	var err error
 	var fds []os.FileInfo
 	var srcinfo os.FileInfo
@@ -51,10 +51,16 @@ func CopyDir(src string, dst string) error {
 		dstfp := path.Join(dst, fd.Name())
 
 		if fd.IsDir() {
-			if err = CopyDir(srcfp, dstfp); err != nil {
+			if dstPrefix != "" {
+				dstPrefix = fmt.Sprintf("%s-%s", dstPrefix, fd.Name())
+			}
+			if err = CopyDir(srcfp, dstfp, dstPrefix); err != nil {
 				fmt.Println(err)
 			}
 		} else {
+			if dstPrefix != "" {
+				dstfp = path.Join(dst, fmt.Sprintf("%s-%s", dstPrefix, fd.Name()))
+			}
 			if err = CopyFile(srcfp, dstfp); err != nil {
 				fmt.Println(err)
 			}
