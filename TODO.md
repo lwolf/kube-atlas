@@ -5,12 +5,12 @@
 [x] should fail if can't create any of the directories
     [x] validate/create target directory before rendering/processing
     [x] check every file for existence before copying 
-[ ] add option to concatenate all the rendered manifests
-[ ] add --dry-run mode
-[ ] iterate over manifests, if it's directory
-    [ ] wildcard copy everything under manifests
+[x] iterate over manifests, if it's directory
+    [x] wildcard copy everything under manifests
 [x] subcharts are not being copied to the release folder
 ## features
+[ ] add option to concatenate all the rendered manifests
+[ ] add --dry-run mode
 [ ] init kube-atlas.yaml from helmfile
 [ ] distinguish local/remote charts, don't try to fetch local
     [x] add `dirty` flag as a workaround to block chart overwriting 
@@ -25,6 +25,7 @@
 [ ] ability to set release name
 [ ] ability to template rendering path
 [ ] interactive init
+[ ] remove dependency on helm
 [ ] support kustomize
 [ ] research and add support for json patch/merge
     * https://github.com/pivotal-cf/yaml-patch

@@ -26,7 +26,8 @@ releases:
       # raw manifests that will be copied to the destination
       # path should be relative to the pkg/manifests directory
       # could be directory of files
-      - argo.yaml
+      - test-dir
+      - manifest.yaml
 #  - name: istio
 #    namespace: istio-system
 #    chart: istio.io/istio

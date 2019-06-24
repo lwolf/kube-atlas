@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/cyphar/filepath-securejoin v0.2.2
+	github.com/google/go-cmp v0.2.0
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/manifoldco/promptui v0.3.2
 	github.com/pelletier/go-toml v1.4.0 // indirect
