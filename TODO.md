@@ -10,6 +10,7 @@
 [x] subcharts are not being copied to the release folder
 ## features
 [ ] add option to concatenate all the rendered manifests
+[ ] ability to template destination directory for release 
 [ ] add --dry-run mode
 [ ] init kube-atlas.yaml from helmfile
 [ ] distinguish local/remote charts, don't try to fetch local
@@ -23,7 +24,7 @@
 ## future
 [ ] ability to support multiple cluster/versions/releases
 [ ] ability to set release name
-[ ] ability to template rendering path
+[ ] ability to inline values in kube-atlas.yaml without requiring values.yaml file
 [ ] interactive init
 [ ] remove dependency on helm
 [ ] support kustomize
