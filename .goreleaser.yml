@@ -1,0 +1,40 @@
+builds:
+- env:
+  - CGO_ENABLED=0
+- binary: kube-atlas
+  main: ./main.go
+  goos:
+    - darwin
+    - linux
+  goarch:
+    - amd64
+    - arm64
+    - arm7
+  ignore:
+    - goos: darwin
+      goarch: arm7
+    - goos: darwin
+      goarch: arm64
+archives:
+- replacements:
+    darwin: Darwin
+    linux: Linux
+    windows: Windows
+    386: i386
+    amd64: x86_64
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+    - '^docs:'
+    - '^test:'
+release:
+  github:
+    owner: lwolf
+    name: kube-atlas
+  prerelease: true
+  draft: true
