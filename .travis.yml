@@ -1,18 +1,27 @@
 # test
 dist: bionic
 
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    packages:
-      - wget
-      - pkg-config
+#addons:
+#  apt:
+#    sources:
+#      - ubuntu-toolchain-r-test
+#    packages:
+#      - wget
+#      - pkg-config
 
 before_install:
-  - wget https://github.com/bazelbuild/bazel/releases/download/0.27.0/bazel_0.27.0-linux-x86_64.deb
+  - echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+    curl --silent https://bazel.build/bazel-release.pub.gpg | sudo apt-key add -
+    sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/bazel.list" \
+    -o Dir::Etc::sourceparts="-" \
+    -o APT::Get::List-Cleanup="0"
+    sudo apt-get install openjdk-8-jdk bazel
+  - curl --silent --output /tmp/bazel_0.27.0_amd64.deb "https://storage.googleapis.com/bazel-apt/pool/jdk1.8/b/bazel/bazel_0.27.0_amd64.deb"
+    sudo dpkg --force-all -i /tmp/bazel_0.27.0_amd64.deb
+
+#  - wget https://github.com/bazelbuild/bazel/releases/download/0.27.0/bazel_0.27.0-linux-x86_64.deb
 #  - sha256sum -c tools/bazel_0.27.0-linux-x86_64.deb.sha256
-  - sudo dpkg -i bazel_0.27.0-linux-x86_64.deb
+#  - sudo dpkg -i bazel_0.27.0-linux-x86_64.deb
 
 script:
   - bazel run //:gazelle
