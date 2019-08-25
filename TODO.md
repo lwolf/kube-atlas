@@ -24,6 +24,10 @@
 ## future
 * [ ] ability to support multiple cluster/versions/releases
 * [ ] ability to set release name
+* [x] ability to set desired -kube-version
+     [ ] bonus: warn if `.Capabilities.KubeVersion.GitVersion` during templating
+* [ ] support rules for extracting some resource types to the predefined locations
+     [ ] e.g. store dashboard resources in common place
 * [ ] ability to inline values in kube-atlas.yaml without requiring values.yaml file
 * [ ] interactive init
 * [ ] remove dependency on helm
