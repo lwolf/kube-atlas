@@ -88,7 +88,11 @@ func renderHelmChart(release *state.ReleaseSpec, s *state.ClusterSpec) error {
 	}()
 
 	helm := helmexec.New(&log.Logger)
-	args := []string{"--output-dir", renderTmp, "--name", release.Name}
+	args := []string{
+		"--output-dir", renderTmp,
+		"--name", release.Name,
+		"--kube-version", release.GetKubeVersion(&s.Defaults),
+	}
 	if release.Namespace != "" {
 		args = append(args, "--namespace", release.Namespace)
 	}

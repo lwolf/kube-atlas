@@ -20,6 +20,9 @@ defaults:
   sourcePath: ./testing/apps
   releasePath: ./testing/releases
   clusterName: amz1
+  # set default value of kube-version to provide to
+  # helm template using `--kube-version "1.14.1-0"`
+  kubeVersion: "1.14.1-0"
 
 releases:
   - name: prometheus

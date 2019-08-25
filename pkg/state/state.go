@@ -13,6 +13,7 @@ const (
 	DefaultValuesDir    = "values"
 	DefaultPatchesDir   = "patches"
 	DefaultReleaseDir   = "releases"
+	DefaultKubeVersion  = "1.14.1-0"
 )
 
 type DefaultConfig struct {
@@ -23,6 +24,7 @@ type DefaultConfig struct {
 	PatchesPath   string `yaml:"patchesPath"`
 	SourcePath    string `yaml:"sourcePath"`
 	ReleasePath   string `yaml:"releasePath"`
+	KubeVersion   string `yaml:"kubeVersion"`
 }
 
 func (dc *DefaultConfig) GetReleasePath() string {
@@ -55,6 +57,13 @@ func (dc *DefaultConfig) GetPatchesPath() string {
 		return dc.PatchesPath
 	}
 	return DefaultPatchesDir
+}
+
+func (dc *DefaultConfig) GetKubeVersion() string {
+	if dc.KubeVersion != "" {
+		return dc.KubeVersion
+	}
+	return DefaultKubeVersion
 }
 
 type ClusterSpec struct {
@@ -131,7 +140,8 @@ type RepositorySpec struct {
 
 // ReleaseSpec defines the structure of a release
 type ReleaseSpec struct {
-	Version string `yaml:"version"`
+	Version     string `yaml:"version"`
+	KubeVersion string `yaml:"kubeVersion"`
 	// Name is the name of this release
 	Name  string `yaml:"name"`
 	Chart string `yaml:"chart"`
@@ -154,6 +164,13 @@ func (r *ReleaseSpec) GetReleasePath(d *DefaultConfig) (string, error) {
 		}
 	}
 	return securejoin.SecureJoin(dstPath, r.Name)
+}
+
+func (r *ReleaseSpec) GetKubeVersion(d *DefaultConfig) string {
+	if r.KubeVersion != "" {
+		return r.KubeVersion
+	}
+	return d.GetKubeVersion()
 }
 
 func (r *ReleaseSpec) GetPkgPath(d *DefaultConfig) (string, error) {
