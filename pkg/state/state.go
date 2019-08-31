@@ -1,30 +1,40 @@
 package state
 
 import (
+	"bytes"
 	"os"
+	"path/filepath"
+	"text/template"
 
 	securejoin "github.com/cyphar/filepath-securejoin"
 	"github.com/spf13/viper"
 )
 
 const (
-	DefaultChartDir     = "chart"
-	DefaultManifestsDir = "manifests"
-	DefaultValuesDir    = "values"
-	DefaultPatchesDir   = "patches"
-	DefaultReleaseDir   = "releases"
-	DefaultKubeVersion  = "1.14.1-0"
+	RenderModeSingle           = "single"
+	RenderModeMulti            = "multi"
+	RenderModeCustom           = "custom"
+	DefaultChartDir            = "chart"
+	DefaultManifestsDir        = "manifests"
+	DefaultValuesDir           = "values"
+	DefaultPatchesDir          = "patches"
+	DefaultReleaseDir          = "releases"
+	DefaultKubeVersion         = "1.14.1-0"
+	DefaultRenderMode          = RenderModeSingle
+	DefaultReleasePathTemplate = "{{.ReleasesPath}}/{{.ClusterName}}/{{.ReleaseNamespace}}/{{.ReleaseName}}"
 )
 
 type DefaultConfig struct {
-	ClusterName   string `yaml:"clusterName"`
-	ChartPath     string `yaml:"chartPath"`
-	ManifestsPath string `yaml:"manifestsPath"`
-	ValuesPath    string `yaml:"valuesPath"`
-	PatchesPath   string `yaml:"patchesPath"`
-	SourcePath    string `yaml:"sourcePath"`
-	ReleasePath   string `yaml:"releasePath"`
-	KubeVersion   string `yaml:"kubeVersion"`
+	ClusterName         string `yaml:"clusterName"`
+	ChartPath           string `yaml:"chartPath"`
+	ManifestsPath       string `yaml:"manifestsPath"`
+	ValuesPath          string `yaml:"valuesPath"`
+	PatchesPath         string `yaml:"patchesPath"`
+	SourcePath          string `yaml:"sourcePath"`
+	ReleasePath         string `yaml:"releasePath"`
+	KubeVersion         string `yaml:"kubeVersion"`
+	RenderMode          string `yaml:"renderMode"`
+	ReleasePathTemplate string `yaml:"releasePathTemplate"`
 }
 
 func (dc *DefaultConfig) GetReleasePath() string {
@@ -33,6 +43,20 @@ func (dc *DefaultConfig) GetReleasePath() string {
 	}
 	return DefaultReleaseDir
 }
+func (dc *DefaultConfig) GetRenderMode() string {
+	if dc.RenderMode != "" {
+		return dc.RenderMode
+	}
+	return DefaultRenderMode
+}
+
+func (dc *DefaultConfig) GetReleasePathTemplate() string {
+	if dc.ReleasePathTemplate != "" {
+		return dc.ReleasePathTemplate
+	}
+	return DefaultReleasePathTemplate
+}
+
 func (dc *DefaultConfig) GetChartPath() string {
 	if dc.ChartPath != "" {
 		return dc.ChartPath
@@ -150,20 +174,33 @@ type ReleaseSpec struct {
 	Dirty       bool     `yaml:"dirty"`
 	Namespace   string   `yaml:"namespace"`
 	ReleasePath string   `yaml:"release_path"`
+	RenderMode  string   `yaml:"renderMode"`
 	Values      []string `yaml:"values"`
 	Manifests   []string `yaml:"manifests"`
 }
 
+type releaseTemplateVars struct {
+	ReleasesPath     string
+	ClusterName      string
+	ReleaseNamespace string
+	ReleaseName      string
+}
+
 func (r *ReleaseSpec) GetReleasePath(d *DefaultConfig) (string, error) {
-	var dstPath = d.GetReleasePath()
-	var err error
-	if d.ClusterName != "" {
-		dstPath, err = securejoin.SecureJoin(dstPath, d.ClusterName)
-		if err != nil {
-			return "", err
-		}
+	// "{{releasePath}}/{{clusterName}}/{{releaseNamespace}}/{{releaseName}}"
+	var b bytes.Buffer
+	vars := releaseTemplateVars{
+		ReleaseName:      r.Name,
+		ReleaseNamespace: r.Namespace,
+		ReleasesPath:     d.ReleasePath,
+		ClusterName:      d.ClusterName,
 	}
-	return securejoin.SecureJoin(dstPath, r.Name)
+	tmpl := template.Must(template.New("path").Parse(d.GetReleasePathTemplate()))
+	err := tmpl.Execute(&b, vars)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Clean(b.String()), nil
 }
 
 func (r *ReleaseSpec) GetKubeVersion(d *DefaultConfig) string {
@@ -171,6 +208,13 @@ func (r *ReleaseSpec) GetKubeVersion(d *DefaultConfig) string {
 		return r.KubeVersion
 	}
 	return d.GetKubeVersion()
+}
+
+func (r *ReleaseSpec) GetRenderMode(d *DefaultConfig) string {
+	if r.RenderMode != "" {
+		return r.RenderMode
+	}
+	return d.GetRenderMode()
 }
 
 func (r *ReleaseSpec) GetPkgPath(d *DefaultConfig) (string, error) {

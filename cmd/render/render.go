@@ -15,9 +15,12 @@
 package render
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/rs/zerolog/log"
@@ -153,24 +156,80 @@ func renderHelmChart(release *state.ReleaseSpec, s *state.ClusterSpec) error {
 	if fds, err = ioutil.ReadDir(chartTmpPath); err != nil {
 		rlog.Fatal().Err(err).Msg("failed to read directory content")
 	}
-	// rlog.Info().Str("path", resultDir).Msg("result path for the rendered chart")
-	for _, fd := range fds {
-		srcfp := filepath.Join(chartTmpPath, fd.Name())
-		dstfp := filepath.Join(dstPath, fd.Name())
-		rlog.Debug().Msgf("copy from %s to %s", srcfp, dstfp)
-		if fd.IsDir() {
-			err = fileutil.CopyDir(srcfp, dstfp, "")
-			if err != nil {
-				rlog.Error().Err(err).Msg("error copying dir")
-			}
-		} else {
-			err = fileutil.CopyFile(srcfp, dstfp)
-			if err != nil {
-				rlog.Error().Err(err).Msg("error copying file")
+	renderMode := release.GetRenderMode(&s.Defaults)
+	switch renderMode {
+	case state.RenderModeSingle:
+		var resultYaml bytes.Buffer
+		for _, fd := range fds {
+			err = concatYamls(filepath.Join(chartTmpPath, fd.Name()), &resultYaml)
+		}
+		chartFile := filepath.Join(dstPath, fmt.Sprintf("%s.%s", release.Name, "yaml"))
+		rlog.Debug().Str("chartFile", chartFile).Msg("chart file result")
+		in, err := os.Create(chartFile)
+		if err != nil {
+			rlog.Fatal().Err(err).Msg("failed to create destination yaml for chart")
+		}
+		defer in.Close()
+		_, err = in.Write(resultYaml.Bytes())
+		if err != nil {
+			rlog.Fatal().Err(err).Msg("failed to write concatenated yaml of chart")
+		}
+	case state.RenderModeMulti:
+		for _, fd := range fds {
+			srcfp := filepath.Join(chartTmpPath, fd.Name())
+			dstfp := filepath.Join(dstPath, fd.Name())
+			rlog.Debug().Msgf("copy from %s to %s", srcfp, dstfp)
+			if fd.IsDir() {
+				err = fileutil.CopyDir(srcfp, dstfp, "")
+				if err != nil {
+					rlog.Error().Err(err).Msg("error copying dir")
+				}
+			} else {
+				err = fileutil.CopyFile(srcfp, dstfp)
+				if err != nil {
+					rlog.Error().Err(err).Msg("error copying file")
+				}
 			}
 		}
+	default:
+		rlog.Error().Str("renderMode", renderMode).Msg("Not Implemented Error")
 	}
 	return nil
+}
+
+func concatYamls(src string, buf *bytes.Buffer) error {
+	var fi os.FileInfo
+	var err error
+	if fi, err = os.Stat(src); err != nil {
+		return err
+	}
+	if fi.IsDir() {
+		var fds []os.FileInfo
+		if fds, err = ioutil.ReadDir(src); err != nil {
+			return err
+		}
+		for _, fd := range fds {
+			err = concatYamls(path.Join(src, fd.Name()), buf)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		var srcfd *os.File
+		if srcfd, err = os.Open(src); err != nil {
+			return err
+		}
+		defer srcfd.Close()
+		if _, err = io.Copy(buf, srcfd); err != nil {
+			return err
+		}
+		// XXX: is there a better way to write new line
+		if _, err = fmt.Fprintln(buf, ""); err != nil {
+			return err
+		}
+
+	}
+	return err
 }
 
 func renderKustomize(release *state.ReleaseSpec, s *state.ClusterSpec) error {
@@ -192,9 +251,11 @@ func copyManifests(release *state.ReleaseSpec, s *state.ClusterSpec) error {
 		return err
 	}
 	for _, m := range release.Manifests {
+		m = filepath.Clean(m)
 		mlog := rlog.With().Str("manifest", m).Logger()
 		p := filepath.Join(manifestsPath, m)
 		if !fileutil.Exists(p) {
+			mlog.Info().Str("path", p).Msg("file does not exists")
 			continue
 		}
 		isDir, err := fileutil.IsDir(p)
