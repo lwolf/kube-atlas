@@ -9,9 +9,9 @@
 *     [x] wildcard copy everything under manifests
 * [x] subcharts are not being copied to the release folder
 ## features
-* [ ] add option to concatenate all the rendered manifests
-* [ ] ability to template destination directory for release 
-* [ ] add --dry-run mode
+* [X] add option to concatenate all the rendered manifests
+* [x] ability to template destination directory for release 
+* [ ] add --dry-run mode ?
 * [ ] init kube-atlas.yaml from helmfile
 * [ ] distinguish local/remote charts, don't try to fetch local
 *     [x] add `dirty` flag as a workaround to block chart overwriting 
@@ -24,6 +24,10 @@
 ## future
 * [ ] ability to support multiple cluster/versions/releases
 * [ ] ability to set release name
+* [ ] ability to upgrade versions (kube-atlas check new version)
+* [ ] consider rules support
+    [x] concatenate rendered chart vs per file
+    [ ] create ordered rollup by using prefixes, e.g. 001-<namespace>.yaml, 002-<crd>.yaml
 * [x] ability to set desired -kube-version
      [ ] bonus: warn if `.Capabilities.KubeVersion.GitVersion` during templating
 * [ ] support rules for extracting some resource types to the predefined locations

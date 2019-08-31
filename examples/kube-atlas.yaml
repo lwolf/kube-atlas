@@ -16,13 +16,18 @@ defaults:
   # - clusterName - global per config, defined in the `defaults` block
   # - releaseNamespace - configurable per release item, `namespace` field
   # - releaseName - configurable per release item, `name` field
-  # releasePathTemplate: "{{releasePath}}/{{clusterName}}/{{releaseNamespace}}/{{releaseName}}"
+  releasePathTemplate: "{{.ReleasesPath}}/{{.ClusterName}}/{{.ReleaseNamespace}}/{{.ReleaseName}}"
   sourcePath: ./testing/apps
   releasePath: ./testing/releases
   clusterName: amz1
   # set default value of kube-version to provide to
   # helm template using `--kube-version "1.14.1-0"`
   kubeVersion: "1.14.1-0"
+  # renderMode allows to customize rendering behaviour, could be customized per release
+  # - single - render entire helm chart to a singe yaml file, default (helmfile like behaviour)
+  # - multi - render each template to a separate file (helm template like behaviour)
+  # - custom - rule-based rendering (NOT IMPLEMENTED YET)
+  renderMode: "single"
 
 releases:
   - name: prometheus
