@@ -6,6 +6,9 @@ build --workspace_status_command hack/status.sh
 # This flag requires Bazel 0.5.0+
 build --sandbox_fake_username
 
+# Make /tmp hermetic
+build --sandbox_tmpfs_path=/tmp
+
 # Enable go race detection.
 build:unit --features=race
 test:unit --features=race

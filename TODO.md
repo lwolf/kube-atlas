@@ -10,7 +10,9 @@
 * [x] subcharts are not being copied to the release folder
 ## features
 * [X] add option to concatenate all the rendered manifests
-* [x] ability to template destination directory for release 
+* [x] ability to template destination directory for release
+* [ ] add delete mode (remove entry from apps,releases and kube-atlas.yaml)
+* [ ] check for binaries during the start  
 * [ ] add --dry-run mode ?
 * [ ] init kube-atlas.yaml from helmfile
 * [ ] distinguish local/remote charts, don't try to fetch local
