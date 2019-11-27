@@ -43,6 +43,7 @@ func (dc *DefaultConfig) GetReleasePath() string {
 	}
 	return DefaultReleaseDir
 }
+
 func (dc *DefaultConfig) GetRenderMode() string {
 	if dc.RenderMode != "" {
 		return dc.RenderMode
@@ -174,6 +175,7 @@ type ReleaseSpec struct {
 	Dirty       bool     `yaml:"dirty"`
 	Namespace   string   `yaml:"namespace"`
 	ReleasePath string   `yaml:"release_path"`
+	ClusterName string   `yaml:"clusterName"`
 	RenderMode  string   `yaml:"renderMode"`
 	Values      []string `yaml:"values"`
 	Manifests   []string `yaml:"manifests"`
@@ -193,7 +195,7 @@ func (r *ReleaseSpec) GetReleasePath(d *DefaultConfig) (string, error) {
 		ReleaseName:      r.Name,
 		ReleaseNamespace: r.Namespace,
 		ReleasesPath:     d.ReleasePath,
-		ClusterName:      d.ClusterName,
+		ClusterName:      r.GetClusterName(d),
 	}
 	tmpl := template.Must(template.New("path").Parse(d.GetReleasePathTemplate()))
 	err := tmpl.Execute(&b, vars)
@@ -215,6 +217,13 @@ func (r *ReleaseSpec) GetRenderMode(d *DefaultConfig) string {
 		return r.RenderMode
 	}
 	return d.GetRenderMode()
+}
+
+func (r *ReleaseSpec) GetClusterName(d *DefaultConfig) string {
+	if r.ClusterName != "" {
+		return r.ClusterName
+	}
+	return d.ClusterName
 }
 
 func (r *ReleaseSpec) GetPkgPath(d *DefaultConfig) (string, error) {
