@@ -11,11 +11,11 @@
 ## features
 * [X] add option to concatenate all the rendered manifests
 * [x] ability to template destination directory for release
-* [ ] repo support as a yaml entry and as a CLI mode
+* [ ] `repo` support as a yaml entry and as a CLI mode
 * [ ] support kustomize
     [ ] use kustomize as a source of manifests
     [ ] use kustomize as a patch engine
-* [ ] add command should add entry to the projects yaml file
+* [x] add command should output content of the entry for kube-atlas.yaml
 * [ ] add delete mode (remove entry from apps,releases and kube-atlas.yaml)
 * [ ] check for binaries during the start  
 * [ ] add --dry-run mode ?
@@ -53,3 +53,6 @@
     * https://github.com/cppforlife/go-patch
     * https://github.com/evanphx/json-patch
     * kustomize
+--------
+/apps/appname/chart-version/
+/apps/appname/kustomize-version/

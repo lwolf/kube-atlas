@@ -15,11 +15,18 @@
 package add
 
 import (
+	"fmt"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/lwolf/kube-atlas/pkg/state"
+)
+
+var (
+	chartName    string
+	chartVersion string
+	namespace    string
 )
 
 var (
@@ -29,6 +36,8 @@ for the new package and optionally fetches helm chart.
 To initialize new package run:
 
 	$ kube-atlas add prometheus
+	$ kube-atlas add prometheus --chart stable/prometheus
+	$ kube-atlas add prometheus --chart stable/prometheus --version 8.8.8
 
 or to add multiple at one step
 	$ kube-atlas add prometheus grafana
@@ -48,12 +57,33 @@ var CmdAdd = &cobra.Command{
 		if err != nil {
 			log.Fatal().Err(err).Msg("unable to unmarshal config")
 		}
+		if len(args) > 1 && (chartName != "" || chartVersion != "") {
+			log.Fatal().Msg("Unable to use `chart` and `version' keys with multiple arguments")
+		}
 		for _, pkg := range args {
 			r := s.ReleaseByName(pkg)
 			if r == nil {
 				// package does not exists in the kube-atlas.yaml
 				r = &state.ReleaseSpec{Name: pkg}
 				log.Info().Str("pkg", pkg).Msg("New package is being added, add record to your kube-atlas.yaml")
+				if namespace == "" {
+					namespace = "%namespace%"
+				}
+				if chartName == "" {
+					chartName = "%repo/chartName%"
+				}
+				if chartVersion == "" {
+					chartVersion = "%chartVersion%"
+				}
+				msg := fmt.Sprintf(`
+  - name: %s
+    namespace: %s
+    chart: %s
+    version: %s
+    manifests: []
+    values: []
+`, pkg, namespace, chartName, chartVersion)
+				log.Info().Msg(msg)
 			}
 			log.Info().Str("pkg", pkg).Msg("Creating/Fixing directory structure for the package")
 			err = r.InitDirs(&s.Defaults)
@@ -64,4 +94,8 @@ var CmdAdd = &cobra.Command{
 	},
 }
 
-func init() {}
+func init() {
+	CmdAdd.Flags().StringVar(&chartName, "chart", "", "Name of the helm chart to fetch into package, e.g. stable/prometheus")
+	CmdAdd.Flags().StringVar(&chartVersion, "version", "", "Version of the helm chart to fetch into package, e.g. 8.11.4")
+	CmdAdd.Flags().StringVar(&namespace, "namespace", "", "Namespace, to add to the kube-atlas file")
+}
