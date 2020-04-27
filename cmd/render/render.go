@@ -250,12 +250,28 @@ func copyManifests(release *state.ReleaseSpec, s *state.ClusterSpec) error {
 	if err != nil {
 		return err
 	}
-	for _, m := range release.Manifests {
+	// by default include all the manifests in the folder
+	// any value set in manifests key overrides it
+	manifests := release.Manifests
+	if len(release.Manifests) == 0 {
+		log.Debug().
+			Str("release", release.Name).
+			Msg("no whitelisted manifests found, including all")
+		var fds []os.FileInfo
+		if fds, err = ioutil.ReadDir(manifestsPath); err != nil {
+			return err
+		}
+		for _, f := range fds {
+			log.Debug().Msgf("including `%s`", f.Name())
+			manifests = append(manifests, f.Name())
+		}
+	}
+	for _, m := range manifests {
 		m = filepath.Clean(m)
 		mlog := rlog.With().Str("manifest", m).Logger()
 		p := filepath.Join(manifestsPath, m)
 		if !fileutil.Exists(p) {
-			mlog.Info().Str("path", p).Msg("file does not exists")
+			mlog.Info().Str("path", p).Msg("file does not exist")
 			continue
 		}
 		isDir, err := fileutil.IsDir(p)
