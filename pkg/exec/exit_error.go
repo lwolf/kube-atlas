@@ -1,4 +1,4 @@
-package helmexec
+package exec
 
 import (
 	"fmt"

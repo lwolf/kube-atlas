@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"os"
+	"os/exec"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -74,6 +75,7 @@ func init() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	cobra.OnInitialize(initConfig)
+	cobra.OnInitialize(validateDependencies)
 
 	RootCmd.PersistentFlags().StringVarP(&cfgFile, "file", "f", "kube-atlas.yaml", "path to the config file")
 	RootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "change logging level")
@@ -87,6 +89,20 @@ func init() {
 	RootCmd.AddCommand(add.CmdAdd)
 	RootCmd.AddCommand(render.CmdRender)
 	RootCmd.AddCommand(bootstrap.CmdInit)
+}
+
+func validateDependencies() {
+	log.Debug().Msg("Make sure helm and kustomize binaries are present in the system")
+	helmVersion := exec.Command("helm", "version")
+	err := helmVersion.Run()
+	if err != nil {
+		log.Error().Err(err).Msg("Unable to check version of helm")
+	}
+	kustomizeVersion := exec.Command("kustomize", "version")
+	err = kustomizeVersion.Run()
+	if err != nil {
+		log.Error().Err(err).Msg("Unable to check version of kustomize")
+	}
 }
 
 // initConfig reads in config file and ENV variables if set.

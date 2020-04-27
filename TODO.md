@@ -12,8 +12,8 @@
 * [X] add option to concatenate all the rendered manifests
 * [x] ability to template destination directory for release
 * [ ] `repo` support as a yaml entry and as a CLI mode
-* [ ] support kustomize
-    [ ] use kustomize as a source of manifests
+* [x] support kustomize
+    [x] use kustomize as a source of manifests
     [ ] use kustomize as a patch engine
 * [x] add command should output content of the entry for kube-atlas.yaml
 * [ ] add delete mode (remove entry from apps,releases and kube-atlas.yaml)
@@ -30,6 +30,7 @@
 * [ ] release binaris to github
 * [ ] write proper readme
 * [ ] init kube-atlas.yaml from helmfile
+* [ ] ability to provide helm/kustomize path in config/env
 * [ ] consider adding ignore list for chart, e.g. do not copy `tests` to release
 
 -------
@@ -54,5 +55,5 @@
     * https://github.com/evanphx/json-patch
     * kustomize
 --------
-/apps/appname/chart-version/
-/apps/appname/kustomize-version/
+helm3 migration blockers:
+* [ ] support for --kube-api-version (https://github.com/helm/helm/issues/7326)

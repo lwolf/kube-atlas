@@ -26,8 +26,9 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 
+	exec_helm "github.com/lwolf/kube-atlas/pkg/exec/helm"
+	exec_kustomize "github.com/lwolf/kube-atlas/pkg/exec/kustomize"
 	"github.com/lwolf/kube-atlas/pkg/fileutil"
-	"github.com/lwolf/kube-atlas/pkg/helmexec"
 	"github.com/lwolf/kube-atlas/pkg/state"
 )
 
@@ -90,7 +91,7 @@ func renderHelmChart(release *state.ReleaseSpec, s *state.ClusterSpec) error {
 		}
 	}()
 
-	helm := helmexec.New(&log.Logger)
+	helm := exec_helm.NewExecHelm(&log.Logger)
 	args := []string{
 		"--output-dir", renderTmp,
 		"--name", release.Name,
@@ -161,7 +162,7 @@ func renderHelmChart(release *state.ReleaseSpec, s *state.ClusterSpec) error {
 	case state.RenderModeSingle:
 		var resultYaml bytes.Buffer
 		for _, fd := range fds {
-			err = concatYamls(filepath.Join(chartTmpPath, fd.Name()), &resultYaml)
+			err = concatYamls(filepath.Join(chartTmpPath, fd.Name()), &resultYaml, "")
 		}
 		chartFile := filepath.Join(dstPath, fmt.Sprintf("%s.%s", release.Name, "yaml"))
 		rlog.Debug().Str("chartFile", chartFile).Msg("chart file result")
@@ -197,7 +198,7 @@ func renderHelmChart(release *state.ReleaseSpec, s *state.ClusterSpec) error {
 	return nil
 }
 
-func concatYamls(src string, buf *bytes.Buffer) error {
+func concatYamls(src string, buf *bytes.Buffer, separator string) error {
 	var fi os.FileInfo
 	var err error
 	if fi, err = os.Stat(src); err != nil {
@@ -209,7 +210,7 @@ func concatYamls(src string, buf *bytes.Buffer) error {
 			return err
 		}
 		for _, fd := range fds {
-			err = concatYamls(path.Join(src, fd.Name()), buf)
+			err = concatYamls(path.Join(src, fd.Name()), buf, separator)
 			if err != nil {
 				return err
 			}
@@ -224,16 +225,98 @@ func concatYamls(src string, buf *bytes.Buffer) error {
 			return err
 		}
 		// XXX: is there a better way to write new line
-		if _, err = fmt.Fprintln(buf, ""); err != nil {
+		if _, err = fmt.Fprintln(buf, separator); err != nil {
 			return err
 		}
-
 	}
 	return err
 }
 
 func renderKustomize(release *state.ReleaseSpec, s *state.ClusterSpec) error {
-	return fmt.Errorf("not implemented error")
+	rlog := log.With().Str("release", release.Name).Logger()
+	renderTmp, err := ioutil.TempDir("", "kustomize-release-")
+	if err != nil {
+		rlog.Fatal().Err(err).Msg("failed to create temp directory")
+	}
+	defer func() {
+		err := os.RemoveAll(renderTmp)
+		if err != nil {
+			rlog.Error().Err(err).Msg("failed remove temp directory")
+		}
+	}()
+	exec := exec_kustomize.NewExecKustomize(&log.Logger)
+	chartPath, err := release.GetChartPath(&s.Defaults)
+	if err != nil {
+		rlog.Error().Err(err).Msg("failed to get chart directory")
+		return err
+	}
+	renderMode := release.GetRenderMode(&s.Defaults)
+	args := []string{
+		"--output", renderTmp,
+	}
+	if err := exec.Build(chartPath, args...); err != nil {
+		return err
+	}
+	dstPath, err := release.GetReleasePath(&s.Defaults)
+	if err != nil {
+		return err
+	}
+	err = os.MkdirAll(dstPath, 0755)
+	if err != nil {
+		return err
+	}
+	rlog.Debug().Str("path", dstPath).Msg("destination path for the rendered chart")
+	err = os.RemoveAll(dstPath)
+	if err != nil {
+		rlog.Fatal().Err(err)
+	}
+	err = os.MkdirAll(dstPath, 0755)
+	if err != nil {
+		rlog.Fatal().Err(err)
+	}
+	var fds []os.FileInfo
+	if fds, err = ioutil.ReadDir(renderTmp); err != nil {
+		rlog.Fatal().Err(err).Msg("failed to read directory content")
+	}
+
+	switch renderMode {
+	case state.RenderModeSingle:
+		var resultYaml bytes.Buffer
+		for _, fd := range fds {
+			err = concatYamls(filepath.Join(renderTmp, fd.Name()), &resultYaml, "---")
+		}
+		chartFile := filepath.Join(dstPath, fmt.Sprintf("%s.%s", release.Name, "yaml"))
+		rlog.Debug().Str("chartFile", chartFile).Msg("chart file result")
+		in, err := os.Create(chartFile)
+		if err != nil {
+			rlog.Fatal().Err(err).Msg("failed to create destination yaml for chart")
+		}
+		defer in.Close()
+		_, err = in.Write(resultYaml.Bytes())
+		if err != nil {
+			rlog.Fatal().Err(err).Msg("failed to write concatenated yaml of chart")
+		}
+	case state.RenderModeMulti:
+		for _, fd := range fds {
+			srcfp := filepath.Join(renderTmp, fd.Name())
+			dstfp := filepath.Join(dstPath, fd.Name())
+			rlog.Debug().Msgf("copy from %s to %s", srcfp, dstfp)
+			if fd.IsDir() {
+				err = fileutil.CopyDir(srcfp, dstfp, "")
+				if err != nil {
+					rlog.Error().Err(err).Msg("error copying dir")
+				}
+			} else {
+				err = fileutil.CopyFile(srcfp, dstfp)
+				if err != nil {
+					rlog.Error().Err(err).Msg("error copying file")
+				}
+			}
+		}
+	default:
+		rlog.Error().Str("renderMode", renderMode).Msg("Not Implemented Error")
+	}
+	return nil
 }
 
 func renderRaw(release *state.ReleaseSpec, s *state.ClusterSpec) error {
