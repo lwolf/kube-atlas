@@ -19,11 +19,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/lwolf/kube-atlas/pkg/helmexec"
-	"github.com/lwolf/kube-atlas/pkg/state"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	exec_helm "github.com/lwolf/kube-atlas/pkg/exec/helm"
+	"github.com/lwolf/kube-atlas/pkg/state"
 )
 
 var (
@@ -128,7 +129,7 @@ var CmdFetch = &cobra.Command{
 			}
 			defer os.RemoveAll(destTmp)
 
-			helm := helmexec.New(&log.Logger)
+			helm := exec_helm.NewExecHelm(&log.Logger)
 			fetchFlags = append(fetchFlags, "--untar", "--untardir", destTmp)
 			log.Info().Strs("fetchFlags", fetchFlags).Msg("fetch flags:")
 			if err := helm.Fetch(release.Chart, fetchFlags...); err != nil {

@@ -6,7 +6,7 @@ go_library(
     importpath = "github.com/lwolf/kube-atlas/cmd/fetch",
     visibility = ["//visibility:public"],
     deps = [
-        "//pkg/helmexec:go_default_library",
+        "//pkg/exec/helm:go_default_library",
         "//pkg/state:go_default_library",
         "@com_github_rs_zerolog//log:go_default_library",
         "@com_github_spf13_cobra//:go_default_library",

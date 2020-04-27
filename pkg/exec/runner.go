@@ -1,4 +1,4 @@
-package helmexec
+package exec
 
 import (
 	"bytes"
@@ -11,21 +11,16 @@ import (
 	"syscall"
 )
 
-const (
-	tmpPrefix = "helmfile-"
-	tmpSuffix = "-exec"
-)
-
 // Runner interface for shell commands
 type Runner interface {
 	Execute(cmd string, args []string, env map[string]string) ([]byte, error)
 }
 
-// ShellRunner implemention for shell commands
+// ShellRunner implementation for shell commands
 type ShellRunner struct {
 	Dir string
 
-	logger *zerolog.Logger
+	Logger *zerolog.Logger
 }
 
 // Execute a shell command
@@ -33,7 +28,7 @@ func (shell ShellRunner) Execute(cmd string, args []string, env map[string]strin
 	preparedCmd := exec.Command(cmd, args...)
 	preparedCmd.Dir = shell.Dir
 	preparedCmd.Env = mergeEnv(os.Environ(), env)
-	return combinedOutput(preparedCmd, shell.logger)
+	return combinedOutput(preparedCmd, shell.Logger)
 }
 
 func combinedOutput(c *exec.Cmd, logger *zerolog.Logger) ([]byte, error) {
