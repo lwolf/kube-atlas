@@ -1,6 +1,6 @@
 module github.com/lwolf/kube-atlas
 
-go 1.12
+go 1.15
 
 require (
 	github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4 // indirect
@@ -8,6 +8,7 @@ require (
 	github.com/google/go-cmp v0.2.0
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/manifoldco/promptui v0.3.2
+	github.com/nicksnyder/go-i18n v1.10.1 // indirect
 	github.com/pelletier/go-toml v1.4.0 // indirect
 	github.com/rs/zerolog v1.14.3
 	github.com/spf13/afero v1.2.2 // indirect
