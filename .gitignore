@@ -1,0 +1,18 @@
+# Binaries
+atlas-bin
+kubectl
+
+# Test environment
+test_env/
+
+# Go
+vendor/
+*.test
+*.out
+
+# IDEs
+.idea/
+.vscode/
+
+# OS
+.DS_Store
