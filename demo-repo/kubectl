@@ -1,0 +1,10 @@
+#!/bin/sh
+if [ "$1" = "diff" ]; then
+    echo "Diffing..."
+    # Simulate valid diff (exit 1) on first run, success on second?
+    # Or just always success for this basic test.
+    # Let's clean exit 0 (no drift).
+    exit 0
+fi
+echo "Mock kubectl called with $*"
+exit 1

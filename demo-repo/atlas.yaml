@@ -1,0 +1,11 @@
+apiVersion: atlas/v1
+kind: AtlasConfig
+policy:
+    command:
+        - grep
+        - namespace
+releases:
+    - id: my-app
+      namespace: default
+      chart: oci://ghcr.io/stefanprodan/charts/podinfo
+      version: 6.7.0

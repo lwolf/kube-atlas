@@ -1,0 +1,7 @@
+apiVersion: atlas/v1
+kind: AtlasConfig
+releases:
+    - id: demo
+      namespace: test
+      chart: bitnami/nginx
+      version: 1.0.0

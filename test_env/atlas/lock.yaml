@@ -1,0 +1,12 @@
+releases:
+    nginx:
+        resolved:
+            chart: bitnami/nginx
+            version: 15.0.0
+            digest: ea9890d2d74267c246e2accce76972c4bdf911890bfd7e8dc5c133dc270882e6
+        vendorHash: sha256:731f5ee78cbd495c80b91eb46efd30fcb5c5c6e4d8b87674acfc2538e342eb11
+    podinfo:
+        resolved:
+            chart: oci://ghcr.io/stefanprodan/charts/podinfo
+            version: 6.7.0
+        vendorHash: sha256:0e1fbab28ee4a75962c3715670b23b8b20c245e196c6cadb8c5deb9b2590bc66

@@ -1,0 +1,7 @@
+apiVersion: atlas/v1
+kind: AtlasConfig
+releases:
+  - id: nginx-public
+    namespace: web
+    chart: bitnami/nginx
+    version: 1.2.3

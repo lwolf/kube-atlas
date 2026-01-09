@@ -1,0 +1,18 @@
+apiVersion: atlas/v1
+kind: AtlasConfig
+repositories:
+    - name: bitnami
+      url: https://charts.bitnami.com/bitnami
+policy:
+    command:
+        - grep
+        - namespace
+releases:
+    - id: nginx
+      namespace: default
+      chart: bitnami/nginx
+      version: 15.0.0
+    - id: podinfo
+      namespace: default
+      chart: oci://ghcr.io/stefanprodan/charts/podinfo
+      version: 6.7.0

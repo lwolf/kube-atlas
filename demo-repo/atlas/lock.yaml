@@ -1,0 +1,6 @@
+releases:
+    my-app:
+        resolved:
+            chart: oci://ghcr.io/stefanprodan/charts/podinfo
+            version: 6.7.0
+        vendorHash: sha256:0e1fbab28ee4a75962c3715670b23b8b20c245e196c6cadb8c5deb9b2590bc66
