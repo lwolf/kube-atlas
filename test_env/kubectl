@@ -1,7 +1,0 @@
-#!/bin/sh
-if [ "$1" = "diff" ]; then
-    echo "Mock kubectl: diffing..."
-    exit 0
-fi
-echo "Mock kubectl called with $*"
-exit 1
