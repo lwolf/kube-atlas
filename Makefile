@@ -1,11 +1,12 @@
 .PHONY: build test e2e clean all install
 
-BINARY=atlas-bin
+BINARY=bin/atlas
 PKG=./cmd/atlas
 
 all: build test
 
 build:
+	mkdir -p bin
 	go build -o $(BINARY) $(PKG)
 
 test:
@@ -18,6 +19,6 @@ install:
 	go install $(PKG)
 
 clean:
-	rm -f $(BINARY)
+	rm -rf bin
 	rm -rf test_env
 	rm -f kubectl

@@ -7,7 +7,7 @@ rm -rf $TEST_DIR
 mkdir $TEST_DIR
 cd $TEST_DIR
 
-ATLAS_BIN="../atlas-bin"
+ATLAS_BIN="../bin/atlas"
 
 echo "Initializing atlas.yaml..."
 cat <<EOF > atlas.yaml

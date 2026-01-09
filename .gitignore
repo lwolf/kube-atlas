@@ -1,5 +1,5 @@
 # Binaries
-atlas-bin
+bin/
 kubectl
 
 # Test environment
