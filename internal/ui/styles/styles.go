@@ -1,6 +1,7 @@
 package styles
 
 import (
+    "github.com/charmbracelet/bubbles/table"
     "github.com/charmbracelet/lipgloss"
 )
 
@@ -27,3 +28,17 @@ var (
         Background(lipgloss.Color("57")).
         Foreground(lipgloss.Color("229"))
 )
+
+func TableStyles() table.Styles {
+    s := table.DefaultStyles()
+    s.Header = s.Header.
+        BorderStyle(lipgloss.NormalBorder()).
+        BorderForeground(lipgloss.Color("240")).
+        BorderBottom(true).
+        Bold(false)
+    s.Selected = s.Selected.
+        Foreground(lipgloss.Color("229")).
+        Background(lipgloss.Color("57")).
+        Bold(false)
+    return s
+}
