@@ -8,12 +8,16 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/lwolf/kube-atlas/internal/app"
 	"github.com/lwolf/kube-atlas/internal/config"
+	"github.com/lwolf/kube-atlas/internal/fs"
+	"github.com/lwolf/kube-atlas/internal/helm/render"
+	"github.com/lwolf/kube-atlas/internal/kust"
 	"github.com/lwolf/kube-atlas/internal/ui/components/releasedetails"
 	"github.com/lwolf/kube-atlas/internal/ui/components/releaseedit"
 	"github.com/lwolf/kube-atlas/internal/ui/components/releaseform"
 	"github.com/lwolf/kube-atlas/internal/ui/components/repoedit"
 	"github.com/lwolf/kube-atlas/internal/ui/components/repoform"
 	"github.com/lwolf/kube-atlas/internal/ui/components/repolist"
+	"github.com/lwolf/kube-atlas/internal/ui/components/yamlview"
 	"github.com/lwolf/kube-atlas/internal/ui/dashboard"
 	"github.com/lwolf/kube-atlas/internal/ui/styles"
 )
@@ -28,6 +32,7 @@ const (
 	StateRepos
 	StateEditRepo
 	StateAddRepo
+	StateViewYAML
 )
 
 type Model struct {
@@ -43,6 +48,7 @@ type Model struct {
 	repoList       repolist.Model
 	repoEdit       repoedit.Model
 	repoForm       repoform.Model
+	yamlView       yamlview.Model
 
 	cfg    *config.Config
 	err    error
@@ -70,6 +76,7 @@ func NewModel(ctx context.Context, repoRoot string, application *app.App) (Model
 		repoList:       repolist.New(cfg.Repositories),
 		repoEdit:       repoedit.New(config.Repository{}), // Will be set when navigating
 		repoForm:       repoform.New(),
+		yamlView:       yamlview.New(config.Release{}, ""), // Will be set when navigating
 		cfg:            cfg,
 	}, nil
 }
@@ -153,8 +160,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, m.releaseEdit.Init()
 
 	case releasedetails.ViewYAMLMsg:
-		// TODO: Implement view YAML functionality (Task 3)
-		m.state = StateDashboard
+		// Render the YAML for this release
+		yamlContent, err := m.renderReleaseYAML(msg.Release)
+		if err != nil {
+			m.err = err
+			return m, nil
+		}
+		m.state = StateViewYAML
+		m.yamlView = yamlview.New(msg.Release, yamlContent)
 		return m, nil
 
 	case releasedetails.BackMsg:
@@ -192,6 +205,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case repoedit.CancelMsg:
 		m.state = StateRepos
 		return m, nil
+
+	case yamlview.BackMsg:
+		m.state = StateReleaseDetails
+		return m, nil
 	}
 
 	// Handle view specific updates
@@ -227,6 +244,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case StateEditRepo:
 		m.repoEdit, cmd = m.repoEdit.Update(msg)
+		cmds = append(cmds, cmd)
+
+	case StateViewYAML:
+		m.yamlView, cmd = m.yamlView.Update(msg)
 		cmds = append(cmds, cmd)
 
 	case StateRepos:
@@ -310,6 +331,10 @@ func (m Model) View() string {
 			styles.TitleStyle.Render("Edit Release") + "\n\n" +
 				m.releaseEdit.View(),
 		)
+	case StateViewYAML:
+		return styles.AppStyle.Render(
+			m.yamlView.View(),
+		)
 	default:
 		return styles.AppStyle.Render(
 			styles.TitleStyle.Render("Atlas TUI") + "\n\n" +
@@ -318,4 +343,18 @@ func (m Model) View() string {
 				styles.StatusStyle.Render("a: Add Release | r: Repos | q: Quit"),
 		)
 	}
+}
+
+// renderReleaseYAML renders the YAML for a given release
+func (m Model) renderReleaseYAML(release config.Release) (string, error) {
+	fsys := fs.RealFS{}
+	renderer := render.New()
+	patcher := kust.New()
+
+	yaml, err := m.app.RenderReleaseForView(release, m.repoRoot, fsys, renderer, patcher)
+	if err != nil {
+		return "", fmt.Errorf("failed to render release: %w", err)
+	}
+
+	return yaml, nil
 }
