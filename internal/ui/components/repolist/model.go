@@ -9,6 +9,7 @@ import (
 
 type Model struct {
 	table table.Model
+	repos []config.Repository
 }
 
 func New(repos []config.Repository) Model {
@@ -36,7 +37,7 @@ func NewWithHeight(repos []config.Repository, height int) Model {
 	s := styles.TableStyles()
 	t.SetStyles(s)
 
-	return Model{table: t}
+	return Model{table: t, repos: repos}
 }
 
 func (m Model) Init() tea.Cmd {
@@ -51,4 +52,12 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 
 func (m Model) View() string {
 	return m.table.View()
+}
+
+func (m Model) SelectedRepository() *config.Repository {
+	idx := m.table.Cursor()
+	if idx >= 0 && idx < len(m.repos) {
+		return &m.repos[idx]
+	}
+	return nil
 }

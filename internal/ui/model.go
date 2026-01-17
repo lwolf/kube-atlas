@@ -11,6 +11,7 @@ import (
 	"github.com/lwolf/kube-atlas/internal/ui/components/releasedetails"
 	"github.com/lwolf/kube-atlas/internal/ui/components/releaseedit"
 	"github.com/lwolf/kube-atlas/internal/ui/components/releaseform"
+	"github.com/lwolf/kube-atlas/internal/ui/components/repoedit"
 	"github.com/lwolf/kube-atlas/internal/ui/components/repoform"
 	"github.com/lwolf/kube-atlas/internal/ui/components/repolist"
 	"github.com/lwolf/kube-atlas/internal/ui/dashboard"
@@ -25,6 +26,7 @@ const (
 	StateEditRelease
 	StateAddRelease
 	StateRepos
+	StateEditRepo
 	StateAddRepo
 )
 
@@ -39,6 +41,7 @@ type Model struct {
 	releaseEdit    releaseedit.Model
 	releaseForm    releaseform.Model
 	repoList       repolist.Model
+	repoEdit       repoedit.Model
 	repoForm       repoform.Model
 
 	cfg    *config.Config
@@ -65,6 +68,7 @@ func NewModel(ctx context.Context, repoRoot string, application *app.App) (Model
 		releaseEdit:    releaseedit.New(config.Release{}),    // Will be set when navigating
 		releaseForm:    releaseform.New(),
 		repoList:       repolist.New(cfg.Repositories),
+		repoEdit:       repoedit.New(config.Repository{}), // Will be set when navigating
 		repoForm:       repoform.New(),
 		cfg:            cfg,
 	}, nil
@@ -172,6 +176,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case releaseedit.CancelMsg:
 		m.state = StateDashboard
 		return m, nil
+
+	case repoedit.ResultMsg:
+		if err := m.app.EditRepository(msg.Options); err != nil {
+			m.err = err
+		} else {
+			if err := m.reloadConfig(); err != nil {
+				m.err = err
+			}
+			m.state = StateRepos
+			m.repoEdit = repoedit.New(config.Repository{})
+		}
+		return m, nil
+
+	case repoedit.CancelMsg:
+		m.state = StateRepos
+		return m, nil
 	}
 
 	// Handle view specific updates
@@ -205,10 +225,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.releaseForm, cmd = m.releaseForm.Update(msg)
 		cmds = append(cmds, cmd)
 
+	case StateEditRepo:
+		m.repoEdit, cmd = m.repoEdit.Update(msg)
+		cmds = append(cmds, cmd)
+
 	case StateRepos:
-		if key, ok := msg.(tea.KeyMsg); ok && key.String() == "a" {
-			m.state = StateAddRepo
-			return m, m.repoForm.Init()
+		if key, ok := msg.(tea.KeyMsg); ok {
+			switch key.String() {
+			case "enter":
+				if repo := m.repoList.SelectedRepository(); repo != nil {
+					m.state = StateEditRepo
+					m.repoEdit = repoedit.New(*repo)
+					return m, m.repoEdit.Init()
+				}
+			case "a":
+				m.state = StateAddRepo
+				return m, m.repoForm.Init()
+			}
 		}
 		m.repoList, cmd = m.repoList.Update(msg)
 		cmds = append(cmds, cmd)
@@ -262,6 +295,11 @@ func (m Model) View() string {
 		return styles.AppStyle.Render(
 			styles.TitleStyle.Render("Add New Repository") + "\n\n" +
 				m.repoForm.View(),
+		)
+	case StateEditRepo:
+		return styles.AppStyle.Render(
+			styles.TitleStyle.Render("Edit Repository") + "\n\n" +
+				m.repoEdit.View(),
 		)
 	case StateReleaseDetails:
 		return styles.AppStyle.Render(
