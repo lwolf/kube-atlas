@@ -11,6 +11,7 @@ import (
 	"github.com/lwolf/kube-atlas/internal/fs"
 	"github.com/lwolf/kube-atlas/internal/helm/render"
 	"github.com/lwolf/kube-atlas/internal/kust"
+	"github.com/lwolf/kube-atlas/internal/ui/components/chartsearch"
 	"github.com/lwolf/kube-atlas/internal/ui/components/releasedetails"
 	"github.com/lwolf/kube-atlas/internal/ui/components/releaseedit"
 	"github.com/lwolf/kube-atlas/internal/ui/components/releaseform"
@@ -33,6 +34,7 @@ const (
 	StateEditRepo
 	StateAddRepo
 	StateViewYAML
+	StateChartSearch
 )
 
 type Model struct {
@@ -49,6 +51,7 @@ type Model struct {
 	repoEdit       repoedit.Model
 	repoForm       repoform.Model
 	yamlView       yamlview.Model
+	chartSearch    chartsearch.Model
 
 	cfg    *config.Config
 	err    error
@@ -77,6 +80,7 @@ func NewModel(ctx context.Context, repoRoot string, application *app.App) (Model
 		repoEdit:       repoedit.New(config.Repository{}), // Will be set when navigating
 		repoForm:       repoform.New(),
 		yamlView:       yamlview.New(config.Release{}, ""), // Will be set when navigating
+		chartSearch:    chartsearch.New(cfg.Repositories),  // Will be set when navigating
 		cfg:            cfg,
 	}, nil
 }
@@ -190,6 +194,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.state = StateDashboard
 		return m, nil
 
+	case releaseform.ChartSearchMsg:
+		m.state = StateChartSearch
+		return m, nil
+
+	case chartsearch.ChartSelectedMsg:
+		// Populate the release form with selected chart
+		m.releaseForm = releaseform.New() // Reset form
+		// TODO: Pre-populate chart and version fields
+		m.state = StateAddRelease
+		return m, nil
+
+	case chartsearch.BackMsg:
+		m.state = StateAddRelease
+		return m, nil
+
 	case repoedit.ResultMsg:
 		if err := m.app.EditRepository(msg.Options); err != nil {
 			m.err = err
@@ -248,6 +267,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case StateViewYAML:
 		m.yamlView, cmd = m.yamlView.Update(msg)
+		cmds = append(cmds, cmd)
+
+	case StateChartSearch:
+		m.chartSearch, cmd = m.chartSearch.Update(msg)
 		cmds = append(cmds, cmd)
 
 	case StateRepos:
@@ -334,6 +357,10 @@ func (m Model) View() string {
 	case StateViewYAML:
 		return styles.AppStyle.Render(
 			m.yamlView.View(),
+		)
+	case StateChartSearch:
+		return styles.AppStyle.Render(
+			m.chartSearch.View(),
 		)
 	default:
 		return styles.AppStyle.Render(
