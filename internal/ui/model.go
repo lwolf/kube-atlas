@@ -9,6 +9,7 @@ import (
 	"github.com/lwolf/kube-atlas/internal/app"
 	"github.com/lwolf/kube-atlas/internal/config"
 	"github.com/lwolf/kube-atlas/internal/ui/components/releasedetails"
+	"github.com/lwolf/kube-atlas/internal/ui/components/releaseedit"
 	"github.com/lwolf/kube-atlas/internal/ui/components/releaseform"
 	"github.com/lwolf/kube-atlas/internal/ui/components/repoform"
 	"github.com/lwolf/kube-atlas/internal/ui/components/repolist"
@@ -21,6 +22,7 @@ type State int
 const (
 	StateDashboard State = iota
 	StateReleaseDetails
+	StateEditRelease
 	StateAddRelease
 	StateRepos
 	StateAddRepo
@@ -34,6 +36,7 @@ type Model struct {
 	state          State
 	dashboard      dashboard.Model
 	releaseDetails releasedetails.Model
+	releaseEdit    releaseedit.Model
 	releaseForm    releaseform.Model
 	repoList       repolist.Model
 	repoForm       repoform.Model
@@ -58,7 +61,8 @@ func NewModel(ctx context.Context, repoRoot string, application *app.App) (Model
 		repoRoot:       repoRoot,
 		state:          StateDashboard,
 		dashboard:      dashboard.New(cfg.Releases),
-		releaseDetails: releasedetails.New(config.Release{}),
+		releaseDetails: releasedetails.New(config.Release{}), // Will be set when navigating
+		releaseEdit:    releaseedit.New(config.Release{}),    // Will be set when navigating
 		releaseForm:    releaseform.New(),
 		repoList:       repolist.New(cfg.Repositories),
 		repoForm:       repoform.New(),
@@ -140,9 +144,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case releasedetails.EditReleaseMsg:
-		// TODO: Implement edit release functionality (Task 3)
-		m.state = StateDashboard
-		return m, nil
+		m.state = StateEditRelease
+		m.releaseEdit = releaseedit.New(msg.Release)
+		return m, m.releaseEdit.Init()
 
 	case releasedetails.ViewYAMLMsg:
 		// TODO: Implement view YAML functionality (Task 3)
@@ -150,6 +154,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case releasedetails.BackMsg:
+		m.state = StateDashboard
+		return m, nil
+
+	case releaseedit.ResultMsg:
+		if err := m.app.EditRelease(msg.Options); err != nil {
+			m.err = err
+		} else {
+			if err := m.reloadConfig(); err != nil {
+				m.err = err
+			}
+			m.state = StateDashboard
+			m.releaseEdit = releaseedit.New(config.Release{})
+		}
+		return m, nil
+
+	case releaseedit.CancelMsg:
 		m.state = StateDashboard
 		return m, nil
 	}
@@ -175,6 +195,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case StateReleaseDetails:
 		m.releaseDetails, cmd = m.releaseDetails.Update(msg)
+		cmds = append(cmds, cmd)
+
+	case StateEditRelease:
+		m.releaseEdit, cmd = m.releaseEdit.Update(msg)
 		cmds = append(cmds, cmd)
 
 	case StateAddRelease:
@@ -242,6 +266,11 @@ func (m Model) View() string {
 	case StateReleaseDetails:
 		return styles.AppStyle.Render(
 			m.releaseDetails.View(),
+		)
+	case StateEditRelease:
+		return styles.AppStyle.Render(
+			styles.TitleStyle.Render("Edit Release") + "\n\n" +
+				m.releaseEdit.View(),
 		)
 	default:
 		return styles.AppStyle.Render(
