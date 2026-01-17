@@ -23,6 +23,8 @@ import (
 	"github.com/lwolf/kube-atlas/internal/ui/styles"
 )
 
+type ErrorRecoveryMsg struct{}
+
 type State int
 
 const (
@@ -43,6 +45,7 @@ type Model struct {
 	repoRoot string
 
 	state          State
+	prevState      State
 	dashboard      dashboard.Model
 	releaseDetails releasedetails.Model
 	releaseEdit    releaseedit.Model
@@ -111,13 +114,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.state == StateDashboard || m.state == StateRepos {
 				return m, tea.Quit
 			}
+		case "b", "esc":
+			if m.err != nil {
+				return m, func() tea.Msg { return ErrorRecoveryMsg{} }
+			}
 		case "r":
 			if m.state == StateDashboard {
+				m.prevState = m.state
 				m.state = StateRepos
 				return m, nil
 			}
 		case "d":
 			if m.state == StateRepos {
+				m.prevState = m.state
 				m.state = StateDashboard
 				return m, nil
 			}
@@ -131,12 +140,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if err := m.reloadConfig(); err != nil {
 				m.err = err
 			}
+			m.prevState = m.state
 			m.state = StateDashboard
 			m.releaseForm = releaseform.New()
 		}
 		return m, nil
 
 	case releaseform.CancelMsg:
+		m.prevState = m.state
 		m.state = StateDashboard
 		return m, nil
 
@@ -149,32 +160,36 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if err := m.reloadConfig(); err != nil {
 				m.err = err
 			}
+			m.prevState = m.state
 			m.state = StateRepos
 			m.repoForm = repoform.New()
 		}
 		return m, nil
 
 	case repoform.CancelMsg:
+		m.prevState = m.state
 		m.state = StateRepos
 		return m, nil
 
 	case releasedetails.EditReleaseMsg:
+		m.prevState = m.state
 		m.state = StateEditRelease
 		m.releaseEdit = releaseedit.New(msg.Release)
 		return m, m.releaseEdit.Init()
 
 	case releasedetails.ViewYAMLMsg:
-		// Render the YAML for this release
 		yamlContent, err := m.renderReleaseYAML(msg.Release)
 		if err != nil {
 			m.err = err
 			return m, nil
 		}
+		m.prevState = m.state
 		m.state = StateViewYAML
 		m.yamlView = yamlview.New(msg.Release, yamlContent)
 		return m, nil
 
 	case releasedetails.BackMsg:
+		m.prevState = m.state
 		m.state = StateDashboard
 		return m, nil
 
@@ -185,16 +200,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if err := m.reloadConfig(); err != nil {
 				m.err = err
 			}
+			m.prevState = m.state
 			m.state = StateDashboard
 			m.releaseEdit = releaseedit.New(config.Release{})
 		}
 		return m, nil
 
 	case releaseedit.CancelMsg:
+		m.prevState = m.state
 		m.state = StateDashboard
 		return m, nil
 
 	case releaseform.ChartSearchMsg:
+		m.prevState = m.state
 		m.state = StateChartSearch
 		return m, nil
 
@@ -202,11 +220,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Populate the release form with selected chart
 		m.releaseForm = releaseform.New() // Reset form
 		// TODO: Pre-populate chart and version fields
+		m.prevState = m.state
 		m.state = StateAddRelease
 		return m, nil
 
 	case chartsearch.BackMsg:
+		m.prevState = m.state
 		m.state = StateAddRelease
+		return m, nil
+
+	case ErrorRecoveryMsg:
+		m.err = nil
+		m.state = m.prevState
 		return m, nil
 
 	case repoedit.ResultMsg:
@@ -216,16 +241,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if err := m.reloadConfig(); err != nil {
 				m.err = err
 			}
+			m.prevState = m.state
 			m.state = StateRepos
 			m.repoEdit = repoedit.New(config.Repository{})
 		}
 		return m, nil
 
 	case repoedit.CancelMsg:
+		m.prevState = m.state
 		m.state = StateRepos
 		return m, nil
 
 	case yamlview.BackMsg:
+		m.prevState = m.state
 		m.state = StateReleaseDetails
 		return m, nil
 	}
@@ -237,11 +265,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch key.String() {
 			case "enter":
 				if release := m.dashboard.SelectedRelease(); release != nil {
+					m.prevState = m.state
 					m.state = StateReleaseDetails
 					m.releaseDetails = releasedetails.New(*release)
 					return m, nil
 				}
 			case "a":
+				m.prevState = m.state
 				m.state = StateAddRelease
 				return m, m.releaseForm.Init()
 			}
@@ -278,11 +308,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch key.String() {
 			case "enter":
 				if repo := m.repoList.SelectedRepository(); repo != nil {
+					m.prevState = m.state
 					m.state = StateEditRepo
 					m.repoEdit = repoedit.New(*repo)
 					return m, m.repoEdit.Init()
 				}
 			case "a":
+				m.prevState = m.state
 				m.state = StateAddRepo
 				return m, m.repoForm.Init()
 			}
@@ -319,7 +351,8 @@ func (m *Model) reloadConfig() error {
 
 func (m Model) View() string {
 	if m.err != nil {
-		return styles.ErrorStyle.Render("Error: "+m.err.Error()) + "\nPress q to quit."
+		return styles.ErrorStyle.Render("Error: "+m.err.Error()) + "\n\n" +
+			styles.StatusStyle.Render("b: back • esc: back • q: quit")
 	}
 
 	switch m.state {
