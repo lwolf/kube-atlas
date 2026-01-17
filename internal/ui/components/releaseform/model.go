@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/lwolf/kube-atlas/internal/app"
+	"github.com/lwolf/kube-atlas/internal/ui/styles"
 )
 
 type Model struct {
@@ -171,7 +172,7 @@ func (m Model) View() string {
 	}
 
 	b.WriteString(searchButton + "  " + submitButton + "\n\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render("Esc to cancel"))
+	b.WriteString(styles.StatusStyle.Render("Tab: Navigate • Enter: Select • Esc: Cancel"))
 
 	return b.String()
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/lwolf/kube-atlas/internal/app"
 	"github.com/lwolf/kube-atlas/internal/config"
+	"github.com/lwolf/kube-atlas/internal/ui/styles"
 )
 
 type Model struct {
@@ -172,7 +173,7 @@ func (m Model) View() string {
 		button = lipgloss.NewStyle().Foreground(lipgloss.Color("205")).Render("[ Update Release ]")
 	}
 	b.WriteString(button + "\n\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render("Esc to cancel"))
+	b.WriteString(styles.StatusStyle.Render("Tab: Navigate • Enter: Update • Esc: Cancel"))
 
 	return b.String()
 }
