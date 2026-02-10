@@ -1,6 +1,7 @@
 # Binaries
 bin/
 kubectl
+atlas/main
 
 # Test environment
 test_env/
